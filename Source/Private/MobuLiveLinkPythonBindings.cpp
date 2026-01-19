@@ -88,6 +88,75 @@ static PyObject* livelink_add_stream_object(PyObject* self, PyObject* args)
 	Py_RETURN_TRUE;
 }
 
+/**
+ * Remove a model from the LiveLink stream
+ * Python signature: remove_stream_object(model_name) -> bool
+ * 
+ * Args:
+ *     model_name: The name of the model to remove (string)
+ * 
+ * Returns:
+ *     True if the model was removed successfully, False otherwise
+ */
+static PyObject* livelink_remove_stream_object(PyObject* self, PyObject* args)
+{
+	// Check if device is initialized
+	if (!g_MobuLiveLinkDevice)
+	{
+		PyErr_SetString(PyExc_RuntimeError, "MobuLiveLink device is not initialized");
+		return NULL;
+	}
+	
+	// Parse arguments - model name as string
+	const char* modelName = NULL;
+	if (!PyArg_ParseTuple(args, "s", &modelName))
+	{
+		PyErr_SetString(PyExc_TypeError, "Argument must be a model name (string)");
+		return NULL;
+	}
+	
+	// Find the model by name
+	FBModel* fbModel = FBFindModelByLabelName(modelName);
+	
+	if (!fbModel)
+	{
+		PyErr_Format(PyExc_ValueError, "Model not found: %s", modelName);
+		return NULL;
+	}
+	
+	// Search for the stream object associated with this model
+	bool bFound = false;
+	int32 foundKey = -1;
+	TSharedPtr<IStreamObject> foundObject = nullptr;
+	
+	for (TPair<int32, TSharedPtr<IStreamObject>>& MapPair : g_MobuLiveLinkDevice->StreamObjects)
+	{
+		if (MapPair.Value.IsValid() && MapPair.Value->GetModelPointer() == fbModel)
+		{
+			foundKey = MapPair.Key;
+			foundObject = MapPair.Value;
+			bFound = true;
+			break;
+		}
+	}
+	
+	if (!bFound)
+	{
+		PyErr_Format(PyExc_ValueError, "Model '%s' is not in the LiveLink stream", modelName);
+		return NULL;
+	}
+	
+	// Remove the object from the stream
+	g_MobuLiveLinkDevice->RemoveStreamObject(foundKey, foundObject);
+	
+	// Success message
+	FBTrace("Python API: Successfully removed model '%s' from LiveLink stream\n", modelName);
+	PyRun_SimpleString("print 'Successfully removed model from LiveLink stream!'");
+	
+	// Return True
+	Py_RETURN_TRUE;
+}
+
 // ============================================================================
 // Module Method Table
 // ============================================================================
@@ -109,6 +178,23 @@ static PyMethodDef LiveLinkMethods[] = {
 		"    import livelink\n"
 		"    livelink.add_stream_object('MyCharacter')\n"
 		"    livelink.add_stream_object('Camera001')"
+	},
+	{
+		"remove_stream_object",                    // Python function name
+		livelink_remove_stream_object,             // C function pointer
+		METH_VARARGS,                              // Takes arguments
+		"Remove a model from the LiveLink stream.\n\n"
+		"Args:\n"
+		"    model_name (str): The name of the model to remove\n\n"
+		"Returns:\n"
+		"    bool: True if successful\n\n"
+		"Raises:\n"
+		"    RuntimeError: If MobuLiveLink device is not initialized\n"
+		"    ValueError: If model not found or not in stream\n\n"
+		"Example:\n"
+		"    import livelink\n"
+		"    livelink.remove_stream_object('MyCharacter')\n"
+		"    livelink.remove_stream_object('Camera001')"
 	},
 	
 	// Null terminator for method array
