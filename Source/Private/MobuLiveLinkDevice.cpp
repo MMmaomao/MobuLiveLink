@@ -70,13 +70,11 @@ bool FMobuLiveLink::FBCreate()
 	LastEvaluationTime = FPlatformTime::Seconds();
 	TimecodeMode = ETimecodeMode::TimecodeMode_Local;
 
-	// Initialize Python bindings
-	InitMobuLiveLinkPythonBindings();
-	
 	// Set this device instance for Python bindings
+	// Note: Python bindings are already initialized in LibInit()
 	SetMobuLiveLinkDeviceInstance(this);
 
-	FBTrace("MobuLiveLink FBCreate - Python bindings initialized\n");
+	FBTrace("MobuLiveLink FBCreate - Device instance set for Python bindings\n");
 	return true;
 }
 

@@ -2,6 +2,7 @@
 
 #include "RequiredProgramMainCPPInclude.h"
 #include "MobuLiveLinkCommon.h"
+#include "MobuLiveLinkDevice.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMoBuPlugin, Log, All);
 
@@ -35,7 +36,11 @@ bool FBLibrary::LibInit()
 	IPluginManager::Get().LoadModulesForEnabledPlugins(ELoadingPhase::Default);
 	IPluginManager::Get().LoadModulesForEnabledPlugins(ELoadingPhase::PostDefault);
 	
+	// Initialize Python bindings early so 'import livelink' works even before device is created
+	InitMobuLiveLinkPythonBindings();
+	
 	FBTrace("MobuLiveLink Library Initialized\n");
+	FBTrace("Python module 'livelink' is now available for import\n");
 	return true;
 }
 
