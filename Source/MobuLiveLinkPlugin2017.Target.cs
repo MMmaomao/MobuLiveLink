@@ -95,7 +95,10 @@ public abstract class MobuLiveLinkPluginTargetBase : TargetRules
 		// We still need to copy the resources, so at this point we might as well copy the files where the default Binaries folder was meant to be.
 		// MobuLiveLinkPlugin.xml will be unaware of how the files got there.
 
-		string ResourcesDir = Path.Combine(ProgramsDir, "MobuLiveLink", "Resources");
+		// Resources folder is in the actual project root (sibling of the actual Source folder containing this target file)
+		string ActualSourceDir = Path.GetDirectoryName(TargetFilePath); // This is the actual Source directory of our project
+		string ActualProjectRoot = Path.GetFullPath(Path.Combine(ActualSourceDir, ".."));
+		string ResourcesDir = Path.Combine(ActualProjectRoot, "Resources");
 		string PostBuildBinDir = Path.Combine(DefaultBinDir, "MotionBuilder", InMobuVersionString);
 		string TbbDependency = Path.Combine(EngineBinariesDir, "tbb12.dll");
 		string TbbMallocDependency = Path.Combine(EngineBinariesDir, "tbbmalloc.dll");
