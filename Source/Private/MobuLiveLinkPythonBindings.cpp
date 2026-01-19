@@ -67,6 +67,17 @@ static PyObject* livelink_add_stream_object(PyObject* self, PyObject* args)
 		return NULL;
 	}
 	
+	// Check if this model is already in the stream
+	for (const TPair<int32, TSharedPtr<IStreamObject>>& MapPair : g_MobuLiveLinkDevice->StreamObjects)
+	{
+		if (MapPair.Value.IsValid() && MapPair.Value->GetModelPointer() == fbModel)
+		{
+			// Model already exists in stream, skip adding
+			FBTrace("Python API: Model '%s' is already in LiveLink stream, skipping\n", modelName);
+			Py_RETURN_TRUE;
+		}
+	}
+	
 	// Create the appropriate StreamObject based on model type
 	TSharedPtr<IStreamObject> streamObject = StreamObjectManagement::FBModelToStreamObject(fbModel);
 	
