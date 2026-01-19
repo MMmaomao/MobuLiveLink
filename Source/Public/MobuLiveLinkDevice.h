@@ -20,6 +20,9 @@
 #define FStringToChar(input) ((std::string)TCHAR_TO_UTF8(*input)).c_str()
 #define CharToFString(input) UTF8_TO_TCHAR(input)
 
+// Forward declaration
+class FMobuLiveLink;
+
 //! Simple input device.
 class FMobuLiveLink : public FBDevice
 {
@@ -137,3 +140,10 @@ private:
 	void TickCoreTicker();
 };
 
+// Python bindings initialization
+// Call this when the plugin loads to register Python functions
+void InitMobuLiveLinkPythonBindings();
+
+// Set the active MobuLiveLink device instance for Python bindings
+// This should be called in FBCreate() and cleared in FBDestroy()
+void SetMobuLiveLinkDeviceInstance(FMobuLiveLink* Device);

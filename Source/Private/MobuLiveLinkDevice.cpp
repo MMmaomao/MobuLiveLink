@@ -70,7 +70,13 @@ bool FMobuLiveLink::FBCreate()
 	LastEvaluationTime = FPlatformTime::Seconds();
 	TimecodeMode = ETimecodeMode::TimecodeMode_Local;
 
-	FBTrace("MobuLiveLink FBCreate\n");
+	// Initialize Python bindings
+	InitMobuLiveLinkPythonBindings();
+	
+	// Set this device instance for Python bindings
+	SetMobuLiveLinkDeviceInstance(this);
+
+	FBTrace("MobuLiveLink FBCreate - Python bindings initialized\n");
 	return true;
 }
 
@@ -80,6 +86,9 @@ bool FMobuLiveLink::FBCreate()
  ************************************************/
 void FMobuLiveLink::FBDestroy()
 {
+	// Clear the device instance for Python bindings
+	SetMobuLiveLinkDeviceInstance(nullptr);
+	
 	FBSystem().Scene->OnChange.Remove(this, (FBCallback)&FMobuLiveLink::EventSceneChange);
 	if (bShouldUpdateInRenderCallback)
 	{

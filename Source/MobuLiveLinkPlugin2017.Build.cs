@@ -54,7 +54,24 @@ public abstract class MobuLiveLinkPluginBase : ModuleRules
 			// Make sure this version of Mobu is actually installed
 			if (Directory.Exists(MobuInstallFolder))
 			{
+				// Then add Mobu SDK include path
 				PrivateIncludePaths.Add(Path.Combine(MobuInstallFolder, "include"));
+				
+				// Add Python support for Boost.Python bindings
+				// Use PublicSystemIncludePaths to force compiler to find Python headers
+				string PythonInclude = Path.Combine(MobuInstallFolder, "include", "python-2.7.11", "Include");
+				if (Directory.Exists(PythonInclude))
+				{
+					System.Console.WriteLine("=== Adding Python Include Path: " + PythonInclude);
+					PublicSystemIncludePaths.Add(PythonInclude);
+					// Also try adding it multiple ways to ensure it works
+					PublicIncludePaths.Add(PythonInclude);
+					PrivateIncludePaths.Add(PythonInclude);
+				}
+				else
+				{
+					System.Console.WriteLine("=== ERROR: Python Include Path NOT FOUND: " + PythonInclude);
+				}
 
 				if (Target.Platform == UnrealTargetPlatform.Win64)  // @todo: Support other platforms?
 				{
@@ -62,6 +79,17 @@ public abstract class MobuLiveLinkPluginBase : ModuleRules
 
 					// Mobu library we're depending on
 					PublicAdditionalLibraries.Add(Path.Combine(LibDir, "fbsdk.lib"));
+					
+					// Add Python 2.7 library for Python C API
+					string PythonLib = Path.Combine(LibDir, "python27.lib");
+					if (File.Exists(PythonLib))
+					{
+						PublicAdditionalLibraries.Add(PythonLib);
+					}
+					else
+					{
+						System.Console.WriteLine("WARNING: Python27.lib not found at: " + PythonLib);
+					}
 				}
 			}
 
