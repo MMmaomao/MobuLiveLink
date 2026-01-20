@@ -168,6 +168,54 @@ static PyObject* livelink_remove_stream_object(PyObject* self, PyObject* args)
 	Py_RETURN_TRUE;
 }
 
+/**
+ * Get all stream objects currently in the LiveLink stream
+ * Python signature: get_stream_objects() -> list
+ * 
+ * Returns:
+ *     List of model names currently in the stream
+ */
+static PyObject* livelink_get_stream_objects(PyObject* self, PyObject* args)
+{
+	// Check if device is initialized
+	if (!g_MobuLiveLinkDevice)
+	{
+		PyErr_SetString(PyExc_RuntimeError, "MobuLiveLink device is not initialized");
+		return NULL;
+	}
+	
+	// Create a Python list
+	PyObject* resultList = PyList_New(0);
+	if (!resultList)
+	{
+		PyErr_SetString(PyExc_RuntimeError, "Failed to create list");
+		return NULL;
+	}
+	
+	// Iterate through all stream objects
+	for (const TPair<int32, TSharedPtr<IStreamObject>>& MapPair : g_MobuLiveLinkDevice->StreamObjects)
+	{
+		if (MapPair.Value.IsValid())
+		{
+			const FBModel* model = MapPair.Value->GetModelPointer();
+			if (model)
+			{
+				// Get model LongName and add to list
+				const char* modelLongName = model->LongName;
+				PyObject* pyName = PyString_FromString(modelLongName);
+				if (pyName)
+				{
+					PyList_Append(resultList, pyName);
+					Py_DECREF(pyName);
+				}
+			}
+		}
+	}
+	
+	FBTrace("Python API: Returned %d stream objects\n", (int)PyList_Size(resultList));
+	return resultList;
+}
+
 // ============================================================================
 // Module Method Table
 // ============================================================================
@@ -206,6 +254,19 @@ static PyMethodDef LiveLinkMethods[] = {
 		"    import livelink\n"
 		"    livelink.remove_stream_object('MyCharacter')\n"
 		"    livelink.remove_stream_object('Camera001')"
+	},
+	{
+		"get_stream_objects",                      // Python function name
+		livelink_get_stream_objects,               // C function pointer
+		METH_NOARGS,                               // No arguments
+		"Get all stream objects currently in the LiveLink stream.\n\n"
+		"Returns:\n"
+		"    list: List of model names (strings) currently in the stream\n\n"
+		"Example:\n"
+		"    import livelink\n"
+		"    objects = livelink.get_stream_objects()\n"
+		"    for obj in objects:\n"
+		"        print('Streaming: ' + obj)"
 	},
 	
 	// Null terminator for method array

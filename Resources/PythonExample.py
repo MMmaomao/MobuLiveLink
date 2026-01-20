@@ -8,6 +8,7 @@ you don't need to manually create a device first.
 Available functions:
     - livelink.add_stream_object(name)    : Add a model to the LiveLink stream
     - livelink.remove_stream_object(name) : Remove a model from the LiveLink stream
+    - livelink.get_stream_objects()       : Get list of all models in the stream
 """
 
 import livelink
@@ -29,14 +30,23 @@ for model_name in model_names:
     except:
         print("Failed to add: " + model_name)
 
-# Example 3: Remove a model from the stream
+# Example 3: Get all stream objects
+try:
+    stream_objects = livelink.get_stream_objects()
+    print("\nCurrently streaming " + str(len(stream_objects)) + " objects:")
+    for obj in stream_objects:
+        print("  - " + obj)
+except Exception as e:
+    print("Error getting stream objects: " + str(e))
+
+# Example 4: Remove a model from the stream
 try:
     livelink.remove_stream_object('MyCharacter')
-    print("Model removed from LiveLink stream")
+    print("\nModel removed from LiveLink stream")
 except Exception as e:
     print("Error removing model: " + str(e))
 
-# Example 4: Add and remove models dynamically
+# Example 5: Add and remove models dynamically
 models_to_stream = ['Camera001', 'Light001']
 
 # Add all models
@@ -47,6 +57,11 @@ for model in models_to_stream:
     except:
         pass
 
+# Check what's streaming
+print("\nCurrently streaming:")
+for obj in livelink.get_stream_objects():
+    print("  - " + obj)
+
 # Later, remove some models
 for model in models_to_stream:
     try:
@@ -54,3 +69,4 @@ for model in models_to_stream:
         print("Stopped streaming: " + model)
     except:
         pass
+
